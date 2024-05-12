@@ -108,9 +108,9 @@ class SCD41():
         return not ((self._message_buffer[0] & 0x07 == 0) and (self._message_buffer[1] == 0))
 
     def get_measurement(self) -> None:
-        print("Getting measurement")
+        # print("Getting measurement")
         if not self._is_data_ready():
-            print("Data is not ready yet")
+            # print("Data is not ready yet")
             return
         self.read_measurement()
 
@@ -171,5 +171,5 @@ class SCD41():
         if self._is_data_ready():
             self.get_measurement()
         else:
-            print("Data is not ready yet. Return the cached data.")
-        print(f"SCD41: CO2_{self.co2}(ppm), Temperature_{self.temperature}°C, Humidity_{self.humidity}%\n")
+            print("[SCD41] Data is not ready yet. Return the cached data.")
+        print(f"[SCD41] CO2_{self.co2}(ppm), Temperature_{self.temperature}°C, Humidity_{self.humidity}%")
