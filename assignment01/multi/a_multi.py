@@ -25,11 +25,10 @@ _bmp180 = BMP180(bus)
 TIMEOUT = 15
 
 _scd41.periodic_measurements(True)
-while TIMEOUT > 0:
+while True:
     print(f"Measuring... {TIMEOUT}s left")
     _bmp180.print_current_measurement()
     _scd41.print_current_measurement()
     print("--------------------\n")
-    TIMEOUT -= 1
-    time.sleep_ms(1000)
+    time.sleep_ms(15000)
 _scd41.periodic_measurements(False)
