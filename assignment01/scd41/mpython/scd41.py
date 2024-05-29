@@ -157,14 +157,17 @@ class SCD41():
 
     @property
     def co2(self) -> int:
+        self.get_measurement()
         return self._co2
     
     @property
     def temperature(self) -> float:
+        self.get_measurement()
         return self._temperature
     
     @property
     def humidity(self) -> float:
+        self.get_measurement()
         return self._humidity
 
     def print_current_measurement(self) -> None:
