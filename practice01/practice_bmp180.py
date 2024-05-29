@@ -28,6 +28,7 @@ class BMP180():
 
         self._raw_coefficients = None
         self._coefficients = array.array('i', (0 for _ in range(11)))
+        self._cached_b5 = 0
         self._measured_temperature = None
         self._measured_pressure = None
 
@@ -92,7 +93,7 @@ class BMP180():
         self._coefficients[9] = struct.unpack_from(">h", self._raw_coefficients, 18)[0] # MC
         self._coefficients[10] = struct.unpack_from(">h", self._raw_coefficients, 20)[0] # MD
     
-    def read_temperature(self) -> None:
+    def _read_temperature(self) -> None:
         self._send_command(BMP180_READ_TEMPERATURE, 5)
         self._send_command(BMP180_REG_OUT_MSB)
         buffer = self._receive_reply(3)
@@ -100,12 +101,47 @@ class BMP180():
         # do not receive data by bytearray
         # print(f"Read temperature: {self._raw_temperature}")
     
-    def read_pressure(self) -> None:
+    def _read_pressure(self) -> None:
         self._send_command(BMP180_READ_PRESSURE_OSS3, 26)
         self._send_command(BMP180_REG_OUT_MSB)
         buffer = self._receive_reply(3)
         self._raw_pressure = buffer
         # print(f"Read pressure: {self._raw_pressure}")
+
+    def _compute_temperature(self) -> None:
+        UT = struct.unpack_from(">h", self._raw_temperature)[0]
+        X1 = (UT - self._coefficients[5]) * self._coefficients[4] // 0x8000
+        X2 = self._coefficients[9] * 0x0800 // (X1 + self._coefficients[10])
+        self._cached_b5 = X1 + X2
+        T = (self._cached_b5 + 8) // 0x0010
+        self._measured_temperature = T / 10
+    
+    def _compute_pressure(self) -> None:
+        oss = 3
+        UP = self._raw_pressure[0] << 16 | self._raw_pressure[1] << 8 | self._raw_pressure[2]
+        UP = UP >> (8 - oss)
+
+        B6 = self._cached_b5 - 4000
+        X1 = (self._coefficients[7] * (B6 * B6 // (1 << 12))) // (1 << 11)
+        X2 = self._coefficients[1] * B6 // (1 << 11)
+        X3 = X1 + X2
+        B3 = (((self._coefficients[0] * 4 + X3) << oss) + 2) // 4
+        X1 = self._coefficients[2] * B6 // (1 << 13)
+        X2 = (self._coefficients[6] * (B6 * B6 // (1 << 12))) // (1 << 16)
+        X3 = ((X1 + X2) + 2) // 4
+
+        B4 = self._coefficients[3] * (X3 + 32768) // (1 << 15)
+        B7 = (UP - B3) * (50000 >> 3)
+        if B7 < 0x80000000 :
+            p = (B7 * 2) // B4
+        else:
+            p = (B7 // B4) * 2
+        X1 = (p // 256) * (p // 256)
+        X1 = (X1 * 3038) // (1 << 16)
+        X2 = (-7357 * p) // (1 << 16)
+        p = p + (X1 + X2 + 3791) // 16
+
+        self._measured_pressure = p / 100
     
     def compute(self, debug: bool = False) -> None:
         # code from sample in this class
@@ -162,9 +198,27 @@ class BMP180():
         self._measured_pressure = p / 100
 
     def read_sensors(self) -> None:
-        self.read_temperature()
-        self.read_pressure()
+        self._read_temperature()
+        self._read_pressure()
         self.compute()
+
+    @property
+    def temperature(self) -> float:
+        self._read_temperature()
+        self._compute_temperature()
+        return self._measured_temperature
+    
+    @property
+    def pressure(self) -> float:
+        self._read_pressure()
+        if self._cached_b5 == 0:
+            _ = self.temperature
+        self._compute_pressure()
+        return self._measured_pressure
+    
+    @property
+    def air_pressure(self) -> float:
+        return self.pressure
 
     def print_current_measurement(self) -> None:
         self.read_sensors()
