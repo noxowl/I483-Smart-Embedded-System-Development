@@ -175,9 +175,10 @@ async def publish_sensor_data(client, bmp180: BMP180, scd41: SCD41) -> None:
                 await publish_data(client, MQTT_TOPIC_JSON, ujson.dumps(data))
             await publish_data(client, MQTT_TOPIC_BMP180_TEMPERATURE, data["bmp180"]["temperature"])
             await publish_data(client, MQTT_TOPIC_BMP180_AIR_PRESSURE, data["bmp180"]["air_pressure"])
-            await publish_data(client, MQTT_TOPIC_SCD41_HUMIDITY, data["scd41"]["humidity"])
-            await publish_data(client, MQTT_TOPIC_SCD41_CO2, data["scd41"]["co2"])
-            await publish_data(client, MQTT_TOPIC_SCD41_TEMPERATURE, data["scd41"]["temperature"])
+            if data["scd41"]["humidity"]:
+                await publish_data(client, MQTT_TOPIC_SCD41_HUMIDITY, data["scd41"]["humidity"])
+                await publish_data(client, MQTT_TOPIC_SCD41_CO2, data["scd41"]["co2"])
+                await publish_data(client, MQTT_TOPIC_SCD41_TEMPERATURE, data["scd41"]["temperature"])
             on_success() # sleep 2 seconds
             scd41.periodic_measurements(True)
             await asyncio.sleep(13) # + on_success = 15 seconds
