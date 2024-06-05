@@ -1,0 +1,13 @@
+[package]
+name = "i483-kafka-publisher"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rdkafka = {  version = "0.36.2", features = ["dynamic-linking"] }
+anyhow = "1.0.86"
+tokio = { version = "1.38.0", features = ["full"] }
+clap = { version = "4.5.4", features = ["derive"] }
+futures = "0.3.30"
