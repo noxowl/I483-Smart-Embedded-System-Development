@@ -1,5 +1,6 @@
 mod cli;
 mod kafka;
+mod worker;
 
 #[tokio::main]
 async fn main() {
@@ -11,10 +12,10 @@ async fn main() {
             cli::print_usage();
         }
         cli::Command::Process(args) => {
-            // kafka::process(&args.host, &args.topics, &args.processes).await;
+            kafka::process(&args.host, &args.topics, &args.processes, &args.debug, &args.dry_run).await;
         }
         cli::Command::Listen(args) => {
-            kafka::listen(&args.host, &args.topics).await;
+            let _ = kafka::listen(&args.host, &args.topics, &args.debug).await;
         }
     }
 }
