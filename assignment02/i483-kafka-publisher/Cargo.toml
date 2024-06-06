@@ -9,7 +9,6 @@ edition = "2021"
 rdkafka = {  version = "0.36.2", features = ["dynamic-linking"] }
 anyhow = "1.0.86"
 tokio = { version = "1.38.0", features = ["full"] }
-clap = { version = "4.5.4", features = ["derive"] }
 futures = "0.3.30"
 uuid = { version = "1.8.0", features = ["v4"] }
 chrono = "0.4.38"
