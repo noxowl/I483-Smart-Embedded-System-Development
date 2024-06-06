@@ -168,8 +168,8 @@ pub async fn process(host: &str, topics: &Vec<String>, processes: &Vec<ProcessTy
         }
     });
 
-    let copied_actors = actors.clone();
-    let copied_tap = topics_and_processes.clone();
+    // let copied_actors = actors.clone();
+    // let copied_tap = topics_and_processes.clone();
     let copied_tap2 = topics_and_processes.clone();
     loop {
         // tokio::spawn(async move {
@@ -242,13 +242,13 @@ fn generate_payload(process: ProcessType, data: ProcessData, t: &str, debug: boo
             match data {
                 ProcessData::RollingAverage(value) => {
                     if debug {
-                        (t.replace("temperature", "avg-temperature-debug"), value.to_string())
+                        (t.replace("-temperature", "_avg-temperature-debug"), value.to_string())
                     } else {
-                        (t.replace("temperature", "avg-temperature"), value.to_string())
+                        (t.replace("-temperature", "_avg-temperature"), value.to_string())
                     }
                 },
                 _ => {
-                    (t.replace("temperature", "avg-temperature"), "".to_string())
+                    (t.replace("-temperature", "_avg-temperature"), "".to_string())
                 },
             }
         }
